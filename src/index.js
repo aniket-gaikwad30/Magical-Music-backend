@@ -24,14 +24,11 @@ const __dirname = path.resolve();
 
 const app = express();
 
-// Railway auto PORT
-const PORT = process.env.PORT || 5050;
+// ============================
+// HTTP SERVER (SOCKET SUPPORT)
+// ============================
 
 const httpServer = createServer(app);
-
-// ============================
-// SOCKET INIT
-// ============================
 
 initializeSocket(httpServer);
 
@@ -49,7 +46,7 @@ app.use(
 app.use(express.json());
 
 // ============================
-// CLERK SAFE LOAD
+// CLERK (SAFE LOAD)
 // ============================
 
 if (process.env.CLERK_SECRET_KEY) {
@@ -72,7 +69,7 @@ app.use(
 );
 
 // ============================
-// HEALTH CHECK (VERY IMPORTANT)
+// HEALTH CHECK (IMPORTANT)
 // ============================
 
 app.get("/", (req, res) => {
@@ -131,19 +128,25 @@ app.use((err, req, res, next) => {
 });
 
 // ============================
-// START SERVER
+// START SERVER (RAILWAY SAFE)
 // ============================
 
 async function startServer() {
   try {
-
-    // Connect DB first
     await connectDB();
 
     console.log("Database Connected ✅");
 
-    // Railway Safe Listen
-    httpServer.listen(PORT, () => {
+    // Railway provides PORT automatically
+    const PORT = process.env.PORT;
+
+    if (!PORT) {
+      console.error("PORT NOT PROVIDED ❌");
+      process.exit(1);
+    }
+
+    // IMPORTANT → bind 0.0.0.0
+    httpServer.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
     });
 
