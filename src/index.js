@@ -23,13 +23,17 @@ dotenv.config();
 const __dirname = path.resolve();
 const app = express();
 
-// ✅ Railway Safe PORT
+// ✅ Local = 5050
+// ✅ Railway = Auto PORT
 const PORT = process.env.PORT || 5050;
 
 const httpServer = createServer(app);
 initializeSocket(httpServer);
 
-// ✅ Production Safe CORS
+// ============================
+// CORS
+// ============================
+
 app.use(
   cors({
     origin: true,
@@ -42,7 +46,10 @@ app.use(express.json());
 // Clerk Middleware
 app.use(clerkMiddleware());
 
-// File Upload Setup
+// ============================
+// FILE UPLOAD
+// ============================
+
 app.use(
   fileUpload({
     useTempFiles: true,
@@ -55,7 +62,7 @@ app.use(
 );
 
 // ============================
-// ✅ ROOT ROUTE (IMPORTANT)
+// ROOT ROUTE
 // ============================
 
 app.get("/", (req, res) => {
@@ -63,7 +70,7 @@ app.get("/", (req, res) => {
 });
 
 // ============================
-// CRON JOB CLEAN TMP FOLDER
+// CRON CLEAN TMP
 // ============================
 
 const tempDir = path.join(process.cwd(), "tmp");
@@ -71,14 +78,11 @@ const tempDir = path.join(process.cwd(), "tmp");
 cron.schedule("0 * * * *", () => {
   if (fs.existsSync(tempDir)) {
     fs.readdir(tempDir, (err, files) => {
-      if (err) {
-        console.log("Cron error:", err);
-        return;
-      }
+      if (err) return console.log("Cron error:", err);
 
-      for (const file of files) {
+      files.forEach((file) => {
         fs.unlink(path.join(tempDir, file), () => {});
-      }
+      });
     });
   }
 });
@@ -93,8 +97,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
-
-
 
 // ============================
 // ERROR HANDLER
@@ -115,13 +117,21 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ============================
 
-httpServer.listen(PORT, async () => {
-  console.log("Server running on port " + PORT);
-
+async function startServer() {
   try {
+    // connect DB FIRST
     await connectDB();
     console.log("Database Connected ✅");
+
+    // ✅ VERY IMPORTANT (Railway Fix)
+    httpServer.listen(PORT, "0.0.0.0", () => {
+      console.log("Server running on port " + PORT);
+    });
+
   } catch (error) {
     console.log("Database Failed ❌", error);
+    process.exit(1);
   }
-});
+}
+
+startServer();
