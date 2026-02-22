@@ -29,7 +29,7 @@ initializeSocket(httpServer);
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: ["http://localhost:3000", "https://magical-music-frontend-5p1v.vercel.app"],
 		credentials: true,
 	})
 );
