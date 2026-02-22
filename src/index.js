@@ -24,19 +24,19 @@ const __dirname = path.resolve();
 
 const app = express();
 
-// ============================
-// ✅ Railway AUTO PORT
-// ============================
-
+// Railway auto PORT
 const PORT = process.env.PORT || 5050;
 
 const httpServer = createServer(app);
 
-// Socket Init
+// ============================
+// SOCKET INIT
+// ============================
+
 initializeSocket(httpServer);
 
 // ============================
-// ✅ CORS
+// CORS
 // ============================
 
 app.use(
@@ -49,7 +49,7 @@ app.use(
 app.use(express.json());
 
 // ============================
-// ✅ CLERK SAFE LOAD
+// CLERK SAFE LOAD
 // ============================
 
 if (process.env.CLERK_SECRET_KEY) {
@@ -57,7 +57,7 @@ if (process.env.CLERK_SECRET_KEY) {
 }
 
 // ============================
-// ✅ FILE UPLOAD
+// FILE UPLOAD
 // ============================
 
 app.use(
@@ -72,22 +72,19 @@ app.use(
 );
 
 // ============================
-// ✅ HEALTH CHECK ROUTES
+// HEALTH CHECK (VERY IMPORTANT)
 // ============================
 
-// Railway Health Check
 app.get("/", (req, res) => {
-  res.setHeader("Content-Type", "text/plain");
   res.status(200).send("Magical Music Backend Running 🚀");
 });
 
-// Extra Health Endpoint
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
 // ============================
-// ✅ CRON TMP CLEANUP
+// CRON TMP CLEAN
 // ============================
 
 const tempDir = path.join(process.cwd(), "tmp");
@@ -108,7 +105,7 @@ cron.schedule("0 * * * *", () => {
 });
 
 // ============================
-// ✅ ROUTES
+// ROUTES
 // ============================
 
 app.use("/api/users", userRoutes);
@@ -119,7 +116,7 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 
 // ============================
-// ✅ ERROR HANDLER
+// ERROR HANDLER
 // ============================
 
 app.use((err, req, res, next) => {
@@ -134,19 +131,19 @@ app.use((err, req, res, next) => {
 });
 
 // ============================
-// ✅ START SERVER
+// START SERVER
 // ============================
 
 async function startServer() {
   try {
 
-    // Connect DB First
+    // Connect DB first
     await connectDB();
 
     console.log("Database Connected ✅");
 
-    // IMPORTANT Railway Binding
-    httpServer.listen(PORT, "0.0.0.0", () => {
+    // Railway Safe Listen
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
 
