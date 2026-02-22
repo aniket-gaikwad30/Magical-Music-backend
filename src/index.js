@@ -21,13 +21,16 @@ import statRoutes from "./routes/stat.route.js";
 dotenv.config();
 
 const __dirname = path.resolve();
+
 const app = express();
 
 // ✅ Local = 5050
-// ✅ Railway = Auto PORT
+// ✅ Railway = Auto Port
 const PORT = process.env.PORT || 5050;
 
 const httpServer = createServer(app);
+
+// Socket Init
 initializeSocket(httpServer);
 
 // ============================
@@ -43,8 +46,13 @@ app.use(
 
 app.use(express.json());
 
-// Clerk Middleware
-app.use(clerkMiddleware());
+// ============================
+// CLERK SAFE LOAD
+// ============================
+
+if (process.env.CLERK_SECRET_KEY) {
+  app.use(clerkMiddleware());
+}
 
 // ============================
 // FILE UPLOAD
@@ -62,15 +70,15 @@ app.use(
 );
 
 // ============================
-// ROOT ROUTE
+// HEALTH CHECK ROUTE
 // ============================
 
 app.get("/", (req, res) => {
-  res.send("Magical Music Backend Running 🚀");
+  res.status(200).send("Magical Music Backend Running 🚀");
 });
 
 // ============================
-// CRON CLEAN TMP
+// CRON TMP CLEAN
 // ============================
 
 const tempDir = path.join(process.cwd(), "tmp");
@@ -119,17 +127,21 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
   try {
-    // connect DB FIRST
+
+    // Connect DB first
     await connectDB();
+
     console.log("Database Connected ✅");
 
-    // ✅ VERY IMPORTANT (Railway Fix)
+    // IMPORTANT Railway Binding
     httpServer.listen(PORT, "0.0.0.0", () => {
       console.log("Server running on port " + PORT);
     });
 
   } catch (error) {
+
     console.log("Database Failed ❌", error);
+
     process.exit(1);
   }
 }
